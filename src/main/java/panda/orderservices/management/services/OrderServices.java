@@ -1,11 +1,14 @@
 package panda.orderservices.management.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.panda.vendor.management.entities.VendorResponseDTO;
 
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import panda.orderservices.management.entities.Orders;
@@ -27,6 +30,10 @@ public class OrderServices {
 
 	@Autowired
 	private SqsAsyncClient sqsClient;
+	
+	@Value("${topic.name}")
+	private String topicName;
+
 
 	public Orders saveOrders(Orders order) {
 		sendValidationRequestToVendor(order);
@@ -59,24 +66,49 @@ public class OrderServices {
 
 }
 	
-	@SqsListener("https://sqs.eu-central-1.amazonaws.com/489855987447/nisith-tech-queue")
-	public void handleVendorResponse(@Payload String rawJson) {
-		try {
-			VendorValidationResponse response = objectMapper.readValue(rawJson, VendorValidationResponse.class);
-			if(response.isDeliverable()) {
-				Orders orders = new Orders();
-				orders.setOrderName(response.getOrderName());
-				orders.setQuantity(response.getQuantity());
-				orders.setOrderLocation(response.getOrderLocation());
-				orders.setStatus("CONFIRMED");
-				orderRepository.save(orders);
-				System.out.println("Order saved after vendor approval");
-			}else {
-				System.out.println("Vendor has rejected the order");
-			}
-		}catch(Exception e) {
-			System.out.println("Error processing SQS message : " + e.getMessage());
-		}
-		
-	}
+//	@SqsListener("https://sqs.eu-central-1.amazonaws.com/489855987447/nisith-tech-queue")
+//	public void handleVendorResponse(@Payload String rawJson) {
+//		try {
+//			VendorValidationResponse response = objectMapper.readValue(rawJson, VendorValidationResponse.class);
+//			if(response.isDeliverable()) {
+//				Orders orders = new Orders();
+//				orders.setOrderName(response.getOrderName());
+//				orders.setQuantity(response.getQuantity());
+//				orders.setOrderLocation(response.getOrderLocation());
+//				orders.setStatus("CONFIRMED");
+//				orderRepository.save(orders);
+//				System.out.println("Order saved after vendor approval");
+//			}else {
+//				System.out.println("Vendor has rejected the order");
+//			}
+//		}catch(Exception e) {
+//			System.out.println("Error processing SQS message : " + e.getMessage());
+//		}
+//		
+//	}
+	
+	 @KafkaListener(topics = "vendor-validated-orders", groupId = "order-management-group")
+	    public void handleVendorResponseConsumer(VendorResponseDTO vendorResponseDTO) {
+	        System.out.println("Kafka Message Received: " + vendorResponseDTO);
+
+	        try {
+	            if (vendorResponseDTO.getDeliverable()) {
+	                Orders order = new Orders();
+	                order.setOrderName(vendorResponseDTO.getOrderName().toString());
+	                order.setQuantity(vendorResponseDTO.getQuantity());
+	                order.setOrderLocation(vendorResponseDTO.getOrderLocation());
+	                order.setStatus("CONFIRMED");
+
+	                orderRepository.save(order);
+	                System.out.println("Order saved after vendor approval");
+	            } else {
+	                System.out.println("Vendor has rejected the order, please contact the vendor: " + vendorResponseDTO.getOrderName());
+	            }
+	        } catch (Exception e) {
+	            System.err.println("Error processing Kafka message: " + e.getMessage());
+	        }
+	    }
+
+	
+	
 }
