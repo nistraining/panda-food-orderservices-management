@@ -1,0 +1,73 @@
+package panda.orderservices.management.entities;
+
+import java.io.Serializable;
+
+public class VendorValidationRequests implements Serializable {
+	private String orderName;
+	private int orderId;
+    private int quantity;
+    private int orderLocation;
+	
+	
+	
+	
+	public VendorValidationRequests() {
+	}
+	
+	
+
+	public VendorValidationRequests(String orderName, int orderId, int quantity, int orderLocation) {
+		this.orderName = orderName;
+		this.orderId = orderId;
+		this.quantity = quantity;
+		this.orderLocation = orderLocation;
+	}
+
+
+   
+	public String getOrderName() {
+		return orderName;
+	}
+
+
+
+	public void setOrderName(String orderName) {
+		this.orderName = orderName;
+	}
+
+
+
+	public int getOrderLocation() {
+		return orderLocation;
+	}
+
+
+
+	public void setOrderLocation(int orderLocation) {
+		this.orderLocation = orderLocation;
+	}
+
+
+
+	public int getOrderId() {
+		return orderId;
+	}
+	public void setOrderId(int orderId) {
+		this.orderId = orderId;
+	}
+	public int getLocationId() {
+		return orderLocation;
+	}
+	public void setLocationId(int locationId) {
+		this.orderLocation = locationId;
+	}
+	
+	public int getQuantity() {
+		return quantity;
+	}
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
+	}
+	
+
+}
