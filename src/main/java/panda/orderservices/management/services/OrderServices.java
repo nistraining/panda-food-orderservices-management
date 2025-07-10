@@ -1,5 +1,8 @@
 package panda.orderservices.management.services;
 
+import java.util.Optional;
+
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -31,24 +34,49 @@ public class OrderServices {
 	@Autowired
 	private SqsAsyncClient sqsClient;
 	
+	@Autowired
+	private LogService logService;
+	
 	@Value("${topic.name}")
 	private String topicName;
+	
+	@Autowired
+	private CorrelationGenerationService correlationGenerationService;
 
 
 	public Orders saveOrders(Orders order) {
-		sendValidationRequestToVendor(order);
+		int orderId = order.getOrderId();
+		//Checking for existing order
+		Optional<Orders> existingOrder = orderRepository.findById(orderId);
+		if(existingOrder.isPresent()) {
+			logService.logMessageToCloudWatch("[OrderService] Duplicate orderId attempted: " + orderId);
+		  return existingOrder.get();
+		}
 		order.setStatus("PENDING");
-		return order;
+		Orders savedOrder = orderRepository.save(order);
+		String correlationId = correlationGenerationService.generateForOrder(orderId);
+		MDC.put(correlationId, correlationId);
+		sendValidationRequestToVendor(savedOrder);
+		logService.logMessageToCloudWatch("[OrderService] Order created: orderId=" + orderId + ", corrId=" + correlationId);
+		MDC.clear();
+		return savedOrder;
 	}
 
 	public void sendValidationRequestToVendor(Orders order) {
 		try {
+			int orderId = order.getOrderId();
+			String corrId =	correlationGenerationService.getCorrelationId(orderId).orElse("UNKNOWN");
+
 		VendorValidationRequests vendorValidationRequests = new VendorValidationRequests(
 				order.getOrderName(),
-				order.getOrderId(),
+				orderId,
 				order.getQuantity(),
-				order.getOrderLocation()
+				order.getOrderLocation(),
+				order.getCreatedTimeStamp()
 				);
+		
+
+
 		
 		String messageBody = objectMapper.writeValueAsString(vendorValidationRequests);
 		SendMessageRequest request = SendMessageRequest.builder()
@@ -57,6 +85,7 @@ public class OrderServices {
 				.build();
 
 		sqsClient.sendMessage(request);
+		logService.logMessageToCloudWatch("[OrderService] Sent to SQS: orderId=" + orderId + ", corrId=" + corrId);
 		System.out.println("Successfully sent the message to the SQS");
 		
 		
@@ -65,47 +94,36 @@ public class OrderServices {
 	}
 
 }
-	
-//	@SqsListener("https://sqs.eu-central-1.amazonaws.com/489855987447/nisith-tech-queue")
-//	public void handleVendorResponse(@Payload String rawJson) {
-//		try {
-//			VendorValidationResponse response = objectMapper.readValue(rawJson, VendorValidationResponse.class);
-//			if(response.isDeliverable()) {
-//				Orders orders = new Orders();
-//				orders.setOrderName(response.getOrderName());
-//				orders.setQuantity(response.getQuantity());
-//				orders.setOrderLocation(response.getOrderLocation());
-//				orders.setStatus("CONFIRMED");
-//				orderRepository.save(orders);
-//				System.out.println("Order saved after vendor approval");
-//			}else {
-//				System.out.println("Vendor has rejected the order");
-//			}
-//		}catch(Exception e) {
-//			System.out.println("Error processing SQS message : " + e.getMessage());
-//		}
-//		
-//	}
-	
+		
 	 @KafkaListener(topics = "vendor-validated-orders", groupId = "order-management-group")
 	    public void handleVendorResponseConsumer(VendorResponseDTO vendorResponseDTO) {
-	        System.out.println("Kafka Message Received: " + vendorResponseDTO);
+		 int orderId = vendorResponseDTO.getOrderId();
+		 String corrId = correlationGenerationService.getCorrelationId(orderId).orElse("Unknown");
+		 MDC.put(corrId, corrId);
+		 logService.logMessageToCloudWatch("Kafka message received for the order id :" +orderId+" With Correlation id :" + corrId);
+		 System.out.println("Kafka Message Received: " + vendorResponseDTO);
 
 	        try {
+	        	Optional<Orders> optionalOrder = orderRepository.findById(orderId);
+	        	if(optionalOrder.isPresent()) {
+	        		Orders order = optionalOrder.get();
+	        	
 	            if (vendorResponseDTO.getDeliverable()) {
-	                Orders order = new Orders();
-	                order.setOrderName(vendorResponseDTO.getOrderName().toString());
-	                order.setQuantity(vendorResponseDTO.getQuantity());
-	                order.setOrderLocation(vendorResponseDTO.getOrderLocation());
 	                order.setStatus("CONFIRMED");
-
 	                orderRepository.save(order);
+	                logService.logMessageToCloudWatch("[OrderService] Order confirmed: orderId=" + orderId + ", corrId=" + corrId);
 	                System.out.println("Order saved after vendor approval");
 	            } else {
+	            	 order.setStatus("REJECTED");
+	            	 orderRepository.save(order);
+	            	 logService.logMessageToCloudWatch("[OrderService] Vendor has rejected the orderId=" + orderId + ", corrId=" + corrId);
 	                System.out.println("Vendor has rejected the order, please contact the vendor: " + vendorResponseDTO.getOrderName());
-	            }
+	            }}
 	        } catch (Exception e) {
 	            System.err.println("Error processing Kafka message: " + e.getMessage());
+	        }finally {
+	        	correlationGenerationService.removeCorrelation(orderId);
+	        	MDC.clear();
 	        }
 	    }
 

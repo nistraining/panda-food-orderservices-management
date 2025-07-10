@@ -1,6 +1,7 @@
 package panda.orderservices.management.config;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -11,6 +12,7 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 
+@Configuration
 public class SecretConfig {
 
 	
@@ -26,6 +28,8 @@ public class SecretConfig {
 
         GetSecretValueResponse response = secretsClient.getSecretValue(request);
         JsonObject creds = new Gson().fromJson(response.secretString(), JsonObject.class);
+        System.setProperty("aws.accessKeyId",creds.get("cloud.aws.credentials.access-key").getAsString());
+        System.setProperty("aws.secretKey",creds.get("cloud.aws.credentials.secret-key").getAsString());
 
         return AwsBasicCredentials.create(
                 creds.get("cloud.aws.credentials.access-key").getAsString(),
