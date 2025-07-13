@@ -1,10 +1,16 @@
 package panda.orderservices.management.services;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
@@ -15,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.panda.vendor.management.entities.VendorResponseDTO;
 
 import io.awspring.cloud.sqs.annotation.SqsListener;
+import jakarta.annotation.PostConstruct;
 import panda.orderservices.management.entities.Orders;
 import panda.orderservices.management.entities.VendorValidationRequests;
 import panda.orderservices.management.entities.VendorValidationResponse;
@@ -47,6 +54,13 @@ public class OrderServices {
 	
 	@Autowired
 	private VendorResolver vendorResolver;
+	
+//	@Autowired
+//	private OktaTokenClient tokenClient;
+	
+	@Autowired
+	private RestTemplate restTemplate;
+	
 
 
 	public Orders saveOrders(Orders order) {
@@ -84,6 +98,7 @@ public class OrderServices {
 	}
 
 
+
 	public void sendValidationRequestToVendor(Orders order,String correlationId) {
 		try {
 			int orderId = order.getOrderId();
@@ -118,7 +133,7 @@ public class OrderServices {
 
 }
 		
-	 @KafkaListener(topics = "vendor-validated-orders", groupId = "order-management-group")
+	    @KafkaListener(topics = "${topic.name}", groupId = "order-management-group")
 	    public void handleVendorResponseConsumer(VendorResponseDTO vendorResponseDTO) {
 		 int orderId = vendorResponseDTO.getOrderId();
 		 String corrId = correlationGenerationService.getCorrelationId(orderId).orElse("Unknown");
@@ -149,6 +164,13 @@ public class OrderServices {
 	        	MDC.clear();
 	        }
 	    }
+	    
+	    
+	    @PostConstruct
+	    public void init() {
+	        System.out.println("OrderServices bean initialized");
+	    }
+
 
 	
 	

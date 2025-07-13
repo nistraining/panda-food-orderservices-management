@@ -14,10 +14,10 @@ import org.apache.avro.message.SchemaStore;
 
 @org.apache.avro.specific.AvroGenerated
 public class VendorResponseDTO extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = 5888383115449341105L;
+  private static final long serialVersionUID = -257336851084476113L;
 
 
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"VendorResponseDTO\",\"namespace\":\"com.panda.vendor.management.entities\",\"fields\":[{\"name\":\"orderName\",\"type\":\"string\"},{\"name\":\"quantity\",\"type\":\"int\"},{\"name\":\"orderLocation\",\"type\":\"int\"},{\"name\":\"deliverable\",\"type\":\"boolean\"},{\"name\":\"messageType\",\"type\":\"string\"},{\"name\":\"orderId\",\"type\":\"int\",\"default\":0},{\"name\":\"createdTimestamp\",\"type\":[\"null\",{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}],\"default\":null}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"VendorResponseDTO\",\"namespace\":\"com.panda.vendor.management.entities\",\"fields\":[{\"name\":\"orderName\",\"type\":\"string\"},{\"name\":\"quantity\",\"type\":\"int\"},{\"name\":\"orderLocation\",\"type\":\"int\"},{\"name\":\"deliverable\",\"type\":\"boolean\"},{\"name\":\"messageType\",\"type\":\"string\"},{\"name\":\"orderId\",\"type\":\"int\",\"default\":0},{\"name\":\"createdTimestamp\",\"type\":[\"null\",{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}],\"default\":null},{\"name\":\"rejectionReasons\",\"type\":[\"null\",{\"type\":\"array\",\"items\":\"string\"}],\"default\":null}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static final SpecificData MODEL$ = new SpecificData();
@@ -83,6 +83,7 @@ public class VendorResponseDTO extends org.apache.avro.specific.SpecificRecordBa
   private java.lang.CharSequence messageType;
   private int orderId;
   private java.time.Instant createdTimestamp;
+  private java.util.List<java.lang.CharSequence> rejectionReasons;
 
   /**
    * Default constructor.  Note that this does not initialize fields
@@ -100,8 +101,9 @@ public class VendorResponseDTO extends org.apache.avro.specific.SpecificRecordBa
    * @param messageType The new value for messageType
    * @param orderId The new value for orderId
    * @param createdTimestamp The new value for createdTimestamp
+   * @param rejectionReasons The new value for rejectionReasons
    */
-  public VendorResponseDTO(java.lang.CharSequence orderName, java.lang.Integer quantity, java.lang.Integer orderLocation, java.lang.Boolean deliverable, java.lang.CharSequence messageType, java.lang.Integer orderId, java.time.Instant createdTimestamp) {
+  public VendorResponseDTO(java.lang.CharSequence orderName, java.lang.Integer quantity, java.lang.Integer orderLocation, java.lang.Boolean deliverable, java.lang.CharSequence messageType, java.lang.Integer orderId, java.time.Instant createdTimestamp, java.util.List<java.lang.CharSequence> rejectionReasons) {
     this.orderName = orderName;
     this.quantity = quantity;
     this.orderLocation = orderLocation;
@@ -109,6 +111,7 @@ public class VendorResponseDTO extends org.apache.avro.specific.SpecificRecordBa
     this.messageType = messageType;
     this.orderId = orderId;
     this.createdTimestamp = createdTimestamp;
+    this.rejectionReasons = rejectionReasons;
   }
 
   @Override
@@ -128,6 +131,7 @@ public class VendorResponseDTO extends org.apache.avro.specific.SpecificRecordBa
     case 4: return messageType;
     case 5: return orderId;
     case 6: return createdTimestamp;
+    case 7: return rejectionReasons;
     default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
   }
@@ -144,6 +148,7 @@ public class VendorResponseDTO extends org.apache.avro.specific.SpecificRecordBa
     case 4: messageType = (java.lang.CharSequence)value$; break;
     case 5: orderId = (java.lang.Integer)value$; break;
     case 6: createdTimestamp = (java.time.Instant)value$; break;
+    case 7: rejectionReasons = (java.util.List<java.lang.CharSequence>)value$; break;
     default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
   }
@@ -268,6 +273,23 @@ public class VendorResponseDTO extends org.apache.avro.specific.SpecificRecordBa
   }
 
   /**
+   * Gets the value of the 'rejectionReasons' field.
+   * @return The value of the 'rejectionReasons' field.
+   */
+  public java.util.List<java.lang.CharSequence> getRejectionReasons() {
+    return rejectionReasons;
+  }
+
+
+  /**
+   * Sets the value of the 'rejectionReasons' field.
+   * @param value the value to set.
+   */
+  public void setRejectionReasons(java.util.List<java.lang.CharSequence> value) {
+    this.rejectionReasons = value;
+  }
+
+  /**
    * Creates a new VendorResponseDTO RecordBuilder.
    * @return A new VendorResponseDTO RecordBuilder
    */
@@ -315,6 +337,7 @@ public class VendorResponseDTO extends org.apache.avro.specific.SpecificRecordBa
     private java.lang.CharSequence messageType;
     private int orderId;
     private java.time.Instant createdTimestamp;
+    private java.util.List<java.lang.CharSequence> rejectionReasons;
 
     /** Creates a new Builder */
     private Builder() {
@@ -355,6 +378,10 @@ public class VendorResponseDTO extends org.apache.avro.specific.SpecificRecordBa
         this.createdTimestamp = data().deepCopy(fields()[6].schema(), other.createdTimestamp);
         fieldSetFlags()[6] = other.fieldSetFlags()[6];
       }
+      if (isValidValue(fields()[7], other.rejectionReasons)) {
+        this.rejectionReasons = data().deepCopy(fields()[7].schema(), other.rejectionReasons);
+        fieldSetFlags()[7] = other.fieldSetFlags()[7];
+      }
     }
 
     /**
@@ -390,6 +417,10 @@ public class VendorResponseDTO extends org.apache.avro.specific.SpecificRecordBa
       if (isValidValue(fields()[6], other.createdTimestamp)) {
         this.createdTimestamp = data().deepCopy(fields()[6].schema(), other.createdTimestamp);
         fieldSetFlags()[6] = true;
+      }
+      if (isValidValue(fields()[7], other.rejectionReasons)) {
+        this.rejectionReasons = data().deepCopy(fields()[7].schema(), other.rejectionReasons);
+        fieldSetFlags()[7] = true;
       }
     }
 
@@ -669,6 +700,46 @@ public class VendorResponseDTO extends org.apache.avro.specific.SpecificRecordBa
       return this;
     }
 
+    /**
+      * Gets the value of the 'rejectionReasons' field.
+      * @return The value.
+      */
+    public java.util.List<java.lang.CharSequence> getRejectionReasons() {
+      return rejectionReasons;
+    }
+
+
+    /**
+      * Sets the value of the 'rejectionReasons' field.
+      * @param value The value of 'rejectionReasons'.
+      * @return This builder.
+      */
+    public com.panda.vendor.management.entities.VendorResponseDTO.Builder setRejectionReasons(java.util.List<java.lang.CharSequence> value) {
+      validate(fields()[7], value);
+      this.rejectionReasons = value;
+      fieldSetFlags()[7] = true;
+      return this;
+    }
+
+    /**
+      * Checks whether the 'rejectionReasons' field has been set.
+      * @return True if the 'rejectionReasons' field has been set, false otherwise.
+      */
+    public boolean hasRejectionReasons() {
+      return fieldSetFlags()[7];
+    }
+
+
+    /**
+      * Clears the value of the 'rejectionReasons' field.
+      * @return This builder.
+      */
+    public com.panda.vendor.management.entities.VendorResponseDTO.Builder clearRejectionReasons() {
+      rejectionReasons = null;
+      fieldSetFlags()[7] = false;
+      return this;
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public VendorResponseDTO build() {
@@ -681,6 +752,7 @@ public class VendorResponseDTO extends org.apache.avro.specific.SpecificRecordBa
         record.messageType = fieldSetFlags()[4] ? this.messageType : (java.lang.CharSequence) defaultValue(fields()[4]);
         record.orderId = fieldSetFlags()[5] ? this.orderId : (java.lang.Integer) defaultValue(fields()[5]);
         record.createdTimestamp = fieldSetFlags()[6] ? this.createdTimestamp : (java.time.Instant) defaultValue(fields()[6]);
+        record.rejectionReasons = fieldSetFlags()[7] ? this.rejectionReasons : (java.util.List<java.lang.CharSequence>) defaultValue(fields()[7]);
         return record;
       } catch (org.apache.avro.AvroMissingFieldException e) {
         throw e;
