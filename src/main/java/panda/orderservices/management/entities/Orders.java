@@ -28,26 +28,26 @@ public class Orders implements Serializable {
 	@CreationTimestamp
 	private Instant createdTimeStamp;
 	
+	private String vendorId;
+	private String vendorName;
+	
 	
 	public Orders() {
 		// TODO Auto-generated constructor stub
 	}
 
-	
-	
-
 	public Orders(int orderId, String orderName, int quantity, int orderLocation, String status,
-			Instant createdTimeStamp) {
+			Instant createdTimeStamp, String vendorId,String vendorName) {
+		super();
 		this.orderId = orderId;
 		this.orderName = orderName;
 		this.quantity = quantity;
 		this.orderLocation = orderLocation;
 		this.status = status;
 		this.createdTimeStamp = createdTimeStamp;
+		this.vendorId = vendorId;
+		this.vendorName=vendorName;
 	}
-
-
-
 
 	public int getOrderId() {
 		return orderId;
@@ -107,15 +107,35 @@ public class Orders implements Serializable {
 	public void setCreatedTimeStamp(Instant createdTimeStamp) {
 		this.createdTimeStamp = createdTimeStamp;
 	}
+	
+
+	public String getVendorId() {
+		return vendorId;
+	}
 
 
 
+
+	public void setVendorId(String vendorId) {
+		this.vendorId = vendorId;
+	}
+
+	public String getVendorName() {
+		return vendorName;
+	}
+
+	public void setVendorName(String vendorName) {
+		this.vendorName = vendorName;
+	}
 
 	@Override
 	public String toString() {
 		return "Orders [orderId=" + orderId + ", orderName=" + orderName + ", quantity=" + quantity + ", orderLocation="
-				+ orderLocation + ", status=" + status + ", createdTimeStamp=" + createdTimeStamp + "]";
+				+ orderLocation + ", status=" + status + ", createdTimeStamp=" + createdTimeStamp + ", vendorId="
+				+ vendorId + ", vendorName=" + vendorName + "]";
 	}
+
+	
 	
     
 

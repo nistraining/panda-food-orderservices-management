@@ -9,6 +9,7 @@ public class VendorValidationRequests implements Serializable {
     private int quantity;
     private int orderLocation;
     private Instant createdTimeStamp;
+    private String vendorId;
 	
 	
 	
@@ -17,17 +18,19 @@ public class VendorValidationRequests implements Serializable {
 	}
 
    
+
+
+
 	public VendorValidationRequests(String orderName, int orderId, int quantity, int orderLocation,
-			Instant createdTimeStamp) {
+			Instant createdTimeStamp, String vendorId) {
 		super();
 		this.orderName = orderName;
 		this.orderId = orderId;
 		this.quantity = quantity;
 		this.orderLocation = orderLocation;
 		this.createdTimeStamp = createdTimeStamp;
+		this.vendorId = vendorId;
 	}
-
-
 
 
 
@@ -88,6 +91,18 @@ public class VendorValidationRequests implements Serializable {
 	public void setCreatedTimeStamp(Instant createdTimeStamp) {
 		this.createdTimeStamp = createdTimeStamp;
 	}
+
+
+	public String getVendorId() {
+		return vendorId;
+	}
+
+
+	public void setVendorId(String vendorId) {
+		this.vendorId = vendorId;
+	}
+	
+	
 	
     
 }

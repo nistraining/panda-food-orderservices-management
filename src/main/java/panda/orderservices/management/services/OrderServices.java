@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,29 +41,50 @@ public class OrderServices {
 	@Value("${topic.name}")
 	private String topicName;
 	
+	
 	@Autowired
 	private CorrelationGenerationService correlationGenerationService;
+	
+	@Autowired
+	private VendorResolver vendorResolver;
 
 
 	public Orders saveOrders(Orders order) {
-		int orderId = order.getOrderId();
-		//Checking for existing order
-		Optional<Orders> existingOrder = orderRepository.findById(orderId);
-		if(existingOrder.isPresent()) {
-			logService.logMessageToCloudWatch("[OrderService] Duplicate orderId attempted: " + orderId);
-		  return existingOrder.get();
-		}
-		order.setStatus("PENDING");
-		Orders savedOrder = orderRepository.save(order);
-		String correlationId = correlationGenerationService.generateForOrder(orderId);
-		MDC.put(correlationId, correlationId);
-		sendValidationRequestToVendor(savedOrder);
-		logService.logMessageToCloudWatch("[OrderService] Order created: orderId=" + orderId + ", corrId=" + correlationId);
-		MDC.clear();
-		return savedOrder;
+	    try {
+	        // Validate payload early
+	        if (order.getOrderName() == null || order.getOrderName().trim().isEmpty()
+	            || order.getQuantity() <= 0 || order.getOrderLocation() == 0) {
+	            String faultyPayload = objectMapper.writeValueAsString(order);
+	            logService.logMessageToCloudWatch("[OrderService] Invalid order payload: " + faultyPayload);
+	            throw new IllegalArgumentException("Order payload is invalid");
+	        }
+
+	        // Save the order early to get the generated ID
+	        order.setStatus("PENDING");
+	        String resolvedVendorId = vendorResolver.resolveVendorId(order.getVendorName().trim(), order.getOrderLocation());
+	        order.setVendorId(resolvedVendorId);
+	        Orders savedOrder = orderRepository.save(order);
+	        int orderId = savedOrder.getOrderId();
+	        // Generate correlation ID with actual order ID
+	        String correlationId = correlationGenerationService.generateForOrder(orderId);
+	        MDC.put(correlationId, correlationId);
+
+	        // Dispatch validation request
+	        sendValidationRequestToVendor(savedOrder, correlationId);
+
+	        logService.logMessageToCloudWatch("[OrderService] Order created: orderId=" + orderId + ", corrId=" + correlationId);
+	        return savedOrder;
+
+	    } catch (Exception e) {
+	        logService.logMessageToCloudWatch("[OrderService] Exception occurred during order creation: " + e.getMessage());
+	        throw new RuntimeException("Failed to create order: " + e.getMessage());
+	    } finally {
+	        MDC.clear();
+	    }
 	}
 
-	public void sendValidationRequestToVendor(Orders order) {
+
+	public void sendValidationRequestToVendor(Orders order,String correlationId) {
 		try {
 			int orderId = order.getOrderId();
 			String corrId =	correlationGenerationService.getCorrelationId(orderId).orElse("UNKNOWN");
@@ -72,7 +94,8 @@ public class OrderServices {
 				orderId,
 				order.getQuantity(),
 				order.getOrderLocation(),
-				order.getCreatedTimeStamp()
+				order.getCreatedTimeStamp(),
+				order.getVendorId()
 				);
 		
 
@@ -116,7 +139,7 @@ public class OrderServices {
 	            } else {
 	            	 order.setStatus("REJECTED");
 	            	 orderRepository.save(order);
-	            	 logService.logMessageToCloudWatch("[OrderService] Vendor has rejected the orderId=" + orderId + ", corrId=" + corrId);
+	            	 logService.logMessageToCloudWatch("[OrderService] Status=REJECTED orderId=" + orderId + ", corrId=" + corrId);
 	                System.out.println("Vendor has rejected the order, please contact the vendor: " + vendorResponseDTO.getOrderName());
 	            }}
 	        } catch (Exception e) {
