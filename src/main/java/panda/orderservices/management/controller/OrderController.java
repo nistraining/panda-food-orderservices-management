@@ -21,7 +21,7 @@ import panda.orderservices.management.services.OrderServices;
 
 
 @RestController
-@RequestMapping("/order")
+@RequestMapping("/orders")
 public class OrderController {
 	
 	@Autowired
@@ -42,7 +42,8 @@ public class OrderController {
 	
 	@PostMapping("/save")
 	public ResponseEntity<Orders> saveOrders(@RequestBody Orders order) throws JsonProcessingException {
-	    Orders savedOrder = orderServices.saveOrders(order);
+		logService.logMessageToCloudWatch("Inside Order Save controller");
+		Orders savedOrder = orderServices.saveOrders(order);
 	    return new ResponseEntity<>(savedOrder, HttpStatus.CREATED);
 	}
 	

@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  panda-order-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: panda-order-service:latest
+    container_name: panda-order-service
+    ports:
+      - "5001:5001"
+
+    environment:
+      # 🔐 Database Configuration
+      DB_USERNAME: root
+      DB_PASSWORD_FILE: /run/secrets/db_password
+      DB_URL: jdbc:mysql://pandafooddb.czo600i424uv.eu-central-1.rds.amazonaws.com:3306/PFODB
+
+      # 🧭 Eureka & Service Discovery
+      SPRING_APPLICATION_NAME: Panda-Order-Service
+      SERVER_PORT: 5001
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://hungry-panda-eureka-server:8761/eureka/
+
+      # 📡 Kafka & Vendor API
+      KAFKA_HOST: kafka
+      SCHEMA_REGISTRY_HOST: schema-registry
+      VENDOR_BASE_URL: http://panda-vendor-management/vendors
+
+      # 🌍 AWS Region
+      AWS_REGION: eu-central-1
+
+    secrets:
+      - db_password
+      - aws_access
+      - aws_secret
+
+    networks:
+      - panda-net
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+secrets:
+  db_password:
+    file: ./password.txt
+  aws_access:
+    file: ./aws_access.txt
+  aws_secret:
+    file: ./aws_secret.txt
+
+networks:
+  panda-net:
+    external: true

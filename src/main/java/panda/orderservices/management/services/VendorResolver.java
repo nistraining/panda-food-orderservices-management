@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,7 @@ import panda.orderservices.management.entities.Vendor;
 
 @Service
 public class VendorResolver {
-	
+
 	@Autowired
 	private RestTemplate restTemplate;
 	
@@ -30,11 +31,14 @@ public class VendorResolver {
 	
 	public String resolveVendorId(String vendorName, int location) {
 	   // String encodedVendorName = URLEncoder.encode(vendorName,StandardCharsets.UTF_8);
+		logService.logMessageToCloudWatch("Inside resolveVendorId");
+		logService.logMessageToCloudWatch(vendorName);
 		String url = UriComponentsBuilder
-	        .fromHttpUrl(vendorBaseUrl + "/vendors/resolve")
+	        .fromHttpUrl(vendorBaseUrl+"/resolve")
 	        .queryParam("vendorName", vendorName)
 	        .queryParam("location", location)
 	        .toUriString();
+		logService.logMessageToCloudWatch(" Vendor Resolver URL is :"+url);
 
 	    try {
 	        ResponseEntity<Vendor> response = restTemplate.getForEntity(url, Vendor.class);

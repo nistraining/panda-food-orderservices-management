@@ -64,6 +64,7 @@ public class OrderServices {
 
 
 	public Orders saveOrders(Orders order) {
+		logService.logMessageToCloudWatch("Inside save orders");
 	    try {
 	        // Validate payload early
 	        if (order.getOrderName() == null || order.getOrderName().trim().isEmpty()
