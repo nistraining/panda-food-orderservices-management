@@ -13,11 +13,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.gson.Gson;
 
 import panda.orderservices.management.entities.Orders;
+import panda.orderservices.management.entities.TestOrder;
 import panda.orderservices.management.services.LogService;
 //import panda.orderservices.management.services.OktaTokenClient;
 import panda.orderservices.management.services.OrderServices;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 
 
 @RestController
@@ -33,6 +38,16 @@ public class OrderController {
 //	
 	@Autowired
 	private LogService logService;
+	
+//	 private SqsClient sqsClient;
+//	 
+//	 @Autowired
+//	    public OrderController(SqsClient sqsClient) {
+//	        this.sqsClient = sqsClient;
+//	    }
+
+
+
 
 	
 	@GetMapping("/home/{name}")
@@ -46,6 +61,27 @@ public class OrderController {
 		Orders savedOrder = orderServices.saveOrders(order);
 	    return new ResponseEntity<>(savedOrder, HttpStatus.CREATED);
 	}
+	
+	
+//	 @PostMapping("/sendtestMessage")
+//	    public ResponseEntity<String> sendTestOrder(@RequestBody TestOrder order) {
+//		 
+//		 
+//	        try {
+//	            String messageBody = new Gson().toJson(order);
+//
+//	            SendMessageResponse response = sqsClient.sendMessage(SendMessageRequest.builder()
+//	                .queueUrl("https://sqs.eu-central-1.amazonaws.com/489855987447/panda-foods-queue")
+//	                .messageBody(messageBody)
+//	                .build());
+//
+//	            return ResponseEntity.ok("✅ Message sent. ID: " + response.messageId());
+//	        } catch (Exception e) {
+//	            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//	                .body("❌ Failed to send message: " + e.getMessage());
+//	        }
+//	    }
+
 	
 //	
 //	@GetMapping("/test-token")

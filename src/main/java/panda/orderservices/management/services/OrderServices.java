@@ -29,6 +29,7 @@ import panda.orderservices.management.repository.OrderRepository;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 
 @Service
 public class OrderServices {
@@ -122,9 +123,15 @@ public class OrderServices {
 				.queueUrl("https://sqs.eu-central-1.amazonaws.com/489855987447/panda-foods-queue")
 				.messageBody(messageBody)
 				.build();
+		SendMessageResponse response = sqsClient.sendMessage(request).get();
+			sqsClient.sendMessage(request).get();
+			logService.logMessageToCloudWatch("Message id is :"+response.messageId());
+			System.out.println("Message ID: " + response.messageId());
 
-		sqsClient.sendMessage(request);
+
+		  //sqsClient.sendMessage(request).thenAccept(r->logService.logMessageToCloudWatch("Message sent. ID: " +response.messageId()));
 		logService.logMessageToCloudWatch("[OrderService] Sent to SQS: orderId=" + orderId + ", corrId=" + corrId);
+		logService.logMessageToCloudWatch("Message id is :"+response.messageId());
 		System.out.println("Successfully sent the message to the SQS");
 		
 		
@@ -134,8 +141,9 @@ public class OrderServices {
 
 }
 		
-	    @KafkaListener(topics = "${topic.name}", groupId = "order-management-group")
+	    @KafkaListener(topics = "vendor-validated-orders", groupId = "order-management-group")
 	    public void handleVendorResponseConsumer(VendorResponseDTO vendorResponseDTO) {
+	     System.out.println("Reading kafka message:");
 		 int orderId = vendorResponseDTO.getOrderId();
 		 String corrId = correlationGenerationService.getCorrelationId(orderId).orElse("Unknown");
 		 MDC.put(corrId, corrId);
@@ -166,6 +174,13 @@ public class OrderServices {
 	        }
 	    }
 	    
+	    
+	    
+//	    @KafkaListener(topics = "vendor-validated-orders", groupId = "debug-group")
+//	    public void testListener(String msg) {
+//	        System.out.println("📥 Dummy listener triggered: " + msg);
+//	    }
+//	    
 	    
 	    @PostConstruct
 	    public void init() {

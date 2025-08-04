@@ -9,34 +9,24 @@ services:
     container_name: panda-order-service
     ports:
       - "5001:5001"
-
     environment:
-      # 🔐 Database Configuration
       DB_USERNAME: root
       DB_PASSWORD_FILE: /run/secrets/db_password
       DB_URL: jdbc:mysql://pandafooddb.czo600i424uv.eu-central-1.rds.amazonaws.com:3306/PFODB
-
-      # 🧭 Eureka & Service Discovery
       SPRING_APPLICATION_NAME: Panda-Order-Service
       SERVER_PORT: 5001
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://hungry-panda-eureka-server:8761/eureka/
-
-      # 📡 Kafka & Vendor API
-      KAFKA_HOST: kafka
+      KAFKA_HOST: broker:29092
       SCHEMA_REGISTRY_HOST: schema-registry
-      VENDOR_BASE_URL: http://panda-vendor-management/vendors
-
-      # 🌍 AWS Region
+      VENDOR_BASE_URL: panda-vendor-management/vendors
       AWS_REGION: eu-central-1
-
     secrets:
       - db_password
       - aws_access
       - aws_secret
-
     networks:
+      - kafka-net
       - panda-net
-
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5001/actuator/health"]
       interval: 30s
@@ -52,5 +42,8 @@ secrets:
     file: ./aws_secret.txt
 
 networks:
+  kafka-net:
+    external: true
+    name: panda-vendor-management_kafka-net
   panda-net:
     external: true

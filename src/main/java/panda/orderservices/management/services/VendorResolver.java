@@ -34,10 +34,10 @@ public class VendorResolver {
 		logService.logMessageToCloudWatch("Inside resolveVendorId");
 		logService.logMessageToCloudWatch(vendorName);
 		String url = UriComponentsBuilder
-	        .fromHttpUrl(vendorBaseUrl+"/resolve")
-	        .queryParam("vendorName", vendorName)
-	        .queryParam("location", location)
-	        .toUriString();
+			    .fromHttpUrl("http://panda-vendor-management/vendors/vendors/resolve")
+			    .queryParam("vendorName", vendorName)
+			    .queryParam("location", location)
+			    .toUriString();
 		logService.logMessageToCloudWatch(" Vendor Resolver URL is :"+url);
 
 	    try {
